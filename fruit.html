@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        body {
+            background: powderblue;
+        }
+
+        #box {
+            width: 920px;
+            height: 600px;
+            margin: 0px auto;
+            position: relative;
+            color: #333333;
+        }
+
+        #top {
+            width: 100%;
+            height: 145px;
+        }
+
+        #top .title {
+            width: 100%;
+            height: 50px;
+            text-align: center;
+            line-height: 70px;
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+        #top .sm {
+            width: 100%;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+        }
+
+        #top .btn {
+            width: 140px;
+            height: 40px;
+            outline: 0;
+            border: 1px solid #241d13;
+            background: #a73f2d;
+            color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 15px #7a2a1d;
+            font-size: 16px;
+            margin-left: 390px;
+            cursor: pointer;
+        }
+
+        #middle {
+            width: 100%;
+            height: 455px;
+            background-color:ghostwhite;
+            position: absolute;
+            left: 0px;
+            top: 165px;
+            color: #333;
+        }
+
+        #middle .left {
+            width: 125px;
+            height: 55px;
+            float: left;
+            padding: 10px;
+        }
+
+        #middle .left p {
+            width: 145px;
+            line-height: 25px;
+        }
+
+        #middle .right {
+            width: 773px;
+            height: 455px;
+            border-left: 2px solid #333;
+            float: left;
+            position: relative;
+            overflow: hidden;
+            background-color: pink;
+        }
+
+        #middle .right img {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            background-color: palegreen;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            display: none;
+        }
+        #middle p{
+            font-size: 20px;
+        }
+        #middle span{
+            color:#f10215;
+        }
+    </style>
+
+</head>
+<body>
+<div id="box">
+    <div id="top">
+        <p class="title">看看你的反应</p>
+        <p class="sm">游戏说明：点击“play”，随机掉下水果，点中它，千万别让他掉下来！！</p>
+        <input class="btn" type="button" value="play" id='btn'>
+    </div>
+    <div id="middle">
+        <div class="left">
+            <p>得分：
+                <span>0</span>分</p>
+            <p>失分：
+                <span>0</span>分</p>
+        </div>
+        <div class="right">
+            <img src="" alt="">
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    //获取元素:
+    var btn=document.getElementById('btn');//开始游戏按钮
+    var Img=document.getElementsByTagName('img')[0];//图片按钮
+    // console.log(Img);
+    var span=document.getElementsByTagName('span');//左边计分模块
+    var boxR=document.getElementsByClassName('right')[0];//右边图片活动的大盒子
+
+    var w= boxR.offsetWidth-50; //获取图片活动的宽度
+    var h= boxR.offsetHeight-50;//获取图片活动高度
+
+    //把图片路径放到数组中
+    var arrImg=['img/1.jpg','img/2.png','img/3.png','img/4.png','img/5.png','img/6.png','img/7.png','img/9.png','img/8.png','img/10.png'];
+    var sdNum=2;//图片运行速度
+
+    var flag=true;
+    for (var i = 0; i < span.length; i++) {
+        span[i].num=0;//一开始全部计分清零
+    }
+
+
+    //游戏开始点击事件
+    btn.onclick=function () {
+        //点击后改变按钮内容
+        this.value = 'playing...';
+        //开始的按钮失效
+        this.disabled = true;
+        //图片显示
+        // console.log(Img.style.display);
+        Img.style.display = 'block';
+        play();
+    }
+        function play() {
+            var n = Math.round(Math.random() * (arrImg.length - 1));//获取数组里面的随机水果
+            var positions = Math.round(Math.random() * (w - 50));//获取水果随机位置
+            //赋值:
+            Img.src = arrImg[n];
+            Img.style.left = positions + 'px';
+            //开始移动:
+            Move(Img,sdNum,h,function() {
+                    Img.style.top = '0px';//让水果回到0px的位置
+                    span[1].innerText++;//失分加一
+                    //规则:如果失分等于5,则停止游戏
+                    if (span[1].innerText == 5) {
+                        Img.style.display = 'none';//图片消失
+                        btn.value = 'play';
+                        btn.disabled = false;
+                        sdNum=2;
+                        setTimeout(function () {
+                            alert('Game Over...您的得分为' + span[0].innerText + '分');
+                            for (var i = 0; i < span.length; i++) {
+                                span[i].innerText = 0;//计分清零
+                            }
+                        },200);
+                    } else {
+                        play();
+                    }
+            })
+        }
+
+        //图片点击事件
+        Img.onclick = function () {
+            Img.style.top = '0px';
+            span[0].innerText++;
+            //加速运动:
+            sdNum=sdNum+0.4;
+            play();
+        }
+
+    //加速移动函数:
+    function Move(ele,sd,target,fn) {
+        //清除定时器:
+        clearInterval(ele.timeID);
+        //设置定时器
+        ele.timeID= setInterval(function (){
+            //下一个位置的变化
+            var current =ele.offsetTop + sd;
+            //边界检测:
+            if(current > target){
+                current = target;
+            };
+            ele.style.top = current +'px';
+            if(current == target){
+                //停止定时器
+                clearInterval(ele.timeID);
+                if(typeof  fn == 'function'){
+                    //如果调用者传递了第三个参数，就帮调用者来执行这个fn变量中的代码
+                    fn();
+                }
+            };
+        },20)
+    }
+</script>
+</html>-0
